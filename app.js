@@ -8,6 +8,20 @@ const scoreEl = document.getElementById("score");
 let currentQuestion = 0;
 let score = 0;
 
+// --- New Feature: Timer per question ---
+let timerInterval = null;
+const TIMER_SECONDS = 15; // seconds per question
+let timeLeft = TIMER_SECONDS;
+
+// Create and insert timer element
+const timerEl = document.createElement("div");
+timerEl.id = "timer";
+timerEl.style.margin = "10px 0";
+timerEl.style.fontWeight = "bold";
+timerEl.style.color = "#e67e22";
+quizBox.insertBefore(timerEl, answersEl);
+
+// ...existing code...
 const questions = [
   {
     question: "What does HTML stand for?",
@@ -27,6 +41,10 @@ const questions = [
 ];
 
 function loadQuestion() {
+  // --- New Feature: Reset and start timer ---
+  resetTimer();
+  startTimer();
+
   const q = questions[currentQuestion];
   questionEl.textContent = q.question;
   answersEl.innerHTML = "";
@@ -39,6 +57,9 @@ function loadQuestion() {
 }
 
 function selectAnswer(selected) {
+  // --- New Feature: Stop timer on answer ---
+  stopTimer();
+
   const q = questions[currentQuestion];
   const buttons = answersEl.querySelectorAll("button");
   buttons.forEach((btn, i) => {
@@ -65,6 +86,8 @@ function showResult() {
   quizBox.classList.add("hidden");
   resultBox.classList.remove("hidden");
   scoreEl.textContent =`${score} / ${questions.length}`;
+  // --- New Feature: Hide timer on result ---
+  timerEl.style.display = "none";
 }
 
 const restartBtn = document.getElementById("restart-btn");
@@ -81,6 +104,7 @@ restartBtn.addEventListener("click", () => {
   resultBox.classList.add("hidden");
   quizBox.classList.remove("hidden");
   nextBtn.style.display = "none";
+  timerEl.style.display = "block"; // Show timer again
   loadQuestion();
 });
 
@@ -90,5 +114,45 @@ window.addEventListener("load", () => {
   if (last) console.log("Your last quiz score was:", last);
 });
 
-loadQuestion();
+// --- New Feature: Timer functions ---
+function startTimer() {
+  timeLeft = TIMER_SECONDS;
+  timerEl.textContent = `⏰ Time Left: ${timeLeft}s`;
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    timerEl.textContent = `⏰ Time Left: ${timeLeft}s`;
+    if (timeLeft <= 0) {
+      stopTimer();
+      autoSelect();
+    }
+  }, 1000);
+}
 
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
+
+function resetTimer() {
+  stopTimer();
+  timeLeft = TIMER_SECONDS;
+  timerEl.textContent = `⏰ Time Left: ${timeLeft}s`;
+}
+
+// --- New Feature: Auto-select if time runs out ---
+function autoSelect() {
+  const q = questions[currentQuestion];
+  const buttons = answersEl.querySelectorAll("button");
+  // If already answered, do nothing
+  if ([...buttons].some(btn => btn.disabled)) return;
+  // Mark as wrong (no answer selected)
+  buttons.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === q.correct) btn.classList.add("correct");
+  });
+  nextBtn.style.display = "block";
+}
+
+loadQuestion();
