@@ -64,7 +64,31 @@ nextBtn.addEventListener("click", () => {
 function showResult() {
   quizBox.classList.add("hidden");
   resultBox.classList.remove("hidden");
-  scoreEl.textContent = ${score} / ${questions.length};
+  scoreEl.textContent =`${score} / ${questions.length}`;
 }
 
+const restartBtn = document.getElementById("restart-btn");
+
+// Save score in local storage
+window.addEventListener("beforeunload", () => {
+  localStorage.setItem("lastScore", score);
+});
+
+// Restart functionality
+restartBtn.addEventListener("click", () => {
+  currentQuestion = 0;
+  score = 0;
+  resultBox.classList.add("hidden");
+  quizBox.classList.remove("hidden");
+  nextBtn.style.display = "none";
+  loadQuestion();
+});
+
+// Show last score (optional)
+window.addEventListener("load", () => {
+  const last = localStorage.getItem("lastScore");
+  if (last) console.log("Your last quiz score was:", last);
+});
+
 loadQuestion();
+
