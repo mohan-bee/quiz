@@ -4,6 +4,9 @@ const answersEl = document.getElementById("answers");
 const nextBtn = document.getElementById("next-btn");
 const resultBox = document.getElementById("result-box");
 const scoreEl = document.getElementById("score");
+// NEW: stats elements
+const lastScoreEl = document.getElementById("last-score");
+const highScoreEl = document.getElementById("high-score");
 
 let currentQuestion = 0;
 let score = 0;
@@ -65,6 +68,14 @@ function showResult() {
   quizBox.classList.add("hidden");
   resultBox.classList.remove("hidden");
   scoreEl.textContent =`${score} / ${questions.length}`;
+  // NEW: persist last/high scores and update UI
+  localStorage.setItem("lastScore", score);
+  const prevHigh = parseInt(localStorage.getItem("highScore") || "0", 10);
+  if (score > prevHigh) {
+    localStorage.setItem("highScore", score);
+    if (highScoreEl) highScoreEl.textContent = `${score} / ${questions.length}`;
+  }
+  if (lastScoreEl) lastScoreEl.textContent = `${score} / ${questions.length}`;
 }
 
 const restartBtn = document.getElementById("restart-btn");
@@ -88,6 +99,14 @@ restartBtn.addEventListener("click", () => {
 window.addEventListener("load", () => {
   const last = localStorage.getItem("lastScore");
   if (last) console.log("Your last quiz score was:", last);
+});
+
+// NEW: update stats UI on load
+window.addEventListener("load", () => {
+  const last = parseInt(localStorage.getItem("lastScore"), 10);
+  const high = parseInt(localStorage.getItem("highScore"), 10);
+  if (!isNaN(last) && lastScoreEl) lastScoreEl.textContent = `${last} / ${questions.length}`;
+  if (!isNaN(high) && highScoreEl) highScoreEl.textContent = `${high} / ${questions.length}`;
 });
 
 loadQuestion();
